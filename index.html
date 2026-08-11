@@ -32,6 +32,16 @@
     color:var(--ink);
     background:linear-gradient(180deg, var(--sky) 0%, var(--sky-light) 55%, var(--sky-deep) 100%);
     position:relative;
+    -webkit-user-select:none;
+    user-select:none;
+    -webkit-touch-callout:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+  img, svg{
+    -webkit-user-drag:none;
+    user-drag:none;
+    -webkit-touch-callout:none;
+    pointer-events:none;
   }
   .cloud-layer{
     position:fixed;
