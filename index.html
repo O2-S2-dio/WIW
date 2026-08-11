@@ -19,27 +19,39 @@
     --warn:#E4572E;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
+  html, body{
+    margin:0; padding:0;
+    width:100%;
+    max-width:100vw;
+    overflow-x:hidden;
+    touch-action: pan-y;
+  }
   body{
     min-height:100vh;
     font-family:'Noto Sans KR',sans-serif;
     color:var(--ink);
     background:linear-gradient(180deg, var(--sky) 0%, var(--sky-light) 55%, var(--sky-deep) 100%);
-    overflow-x:hidden;
     position:relative;
+  }
+  .cloud-layer{
+    position:fixed;
+    inset:0;
+    overflow:hidden;
+    pointer-events:none;
+    z-index:0;
   }
   .cloud{
     position:absolute; opacity:0.9;
     filter:drop-shadow(0 8px 14px rgba(0,60,100,0.10));
-    z-index:0; animation:drift linear infinite;
+    animation:drift linear infinite;
   }
   @keyframes drift{ from{transform:translateX(-40px);} to{transform:translateX(40px);} }
-  .cloud1{top:6%; left:-4%; width:150px; animation-duration:14s;}
-  .cloud2{top:14%; right:-6%; width:110px; animation-duration:11s; animation-direction:alternate-reverse;}
-  .cloud3{top:88%; left:-8%; width:130px; animation-duration:16s;}
-  .cloud4{top:95%; right:-4%; width:90px; animation-duration:9s; animation-direction:alternate-reverse;}
+  .cloud1{top:6%; left:2%; width:150px; animation-duration:14s;}
+  .cloud2{top:14%; right:2%; width:110px; animation-duration:11s; animation-direction:alternate-reverse;}
+  .cloud3{top:88%; left:2%; width:130px; animation-duration:16s;}
+  .cloud4{top:95%; right:2%; width:90px; animation-duration:9s; animation-direction:alternate-reverse;}
 
-  .wrap{ position:relative; z-index:1; max-width:480px; margin:0 auto; padding:32px 20px 48px; }
+  .wrap{ position:relative; z-index:1; max-width:480px; margin:0 auto; padding:32px 20px 48px; overflow-x:hidden; }
 
   .topbar{ display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:28px; position:relative; }
   .topbar .logo{ font-family:'Jua',sans-serif; font-size:20px; color:var(--white); }
@@ -72,6 +84,7 @@
   .card{
     background:var(--white); border-radius:32px; padding:30px 26px 26px;
     box-shadow:0 16px 40px rgba(0,50,90,0.18); text-align:center;
+    overflow-x:hidden;
   }
   .badge-row{ display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:6px; flex-wrap:wrap; }
   .badge{
@@ -102,7 +115,7 @@
   .range .lo{color:var(--sky); font-weight:700;}
 
   .gauges{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:20px; }
-  .gauge{ background:#EAF6FF; border-radius:18px; padding:12px 6px; }
+  .gauge{ background:#EAF6FF; border-radius:18px; padding:12px 6px; min-width:0; }
   .gauge .g-icon{font-size:18px; margin-bottom:4px;}
   .gauge .g-label{font-size:10px; color:var(--ink-soft); margin-bottom:3px;}
   .gauge .g-val{font-family:'Baloo 2',sans-serif; font-weight:700; font-size:15px; color:var(--sky);}
@@ -113,9 +126,9 @@
   .sun-labels b{color:var(--ink); font-weight:700;}
 
   .week-title{ font-size:11px; color:var(--ink-soft); margin-bottom:10px; text-align:left; }
-  .week{ display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; }
+  .week{ display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; -webkit-overflow-scrolling:touch; touch-action:pan-x; }
   .day{
-    flex:1 0 56px; background:#EAF6FF; border-radius:16px; padding:10px 4px;
+    flex:1 0 52px; background:#EAF6FF; border-radius:16px; padding:10px 4px;
     text-align:center; cursor:pointer; border:2px solid transparent;
     transition:background 0.15s, border-color 0.15s;
   }
@@ -142,10 +155,12 @@
 </head>
 <body>
 
-  <svg class="cloud cloud1" viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg"><path d="M40 80 Q10 80 10 55 Q10 30 35 30 Q40 8 68 8 Q95 8 100 30 Q125 25 130 48 Q155 48 155 68 Q155 88 130 88 L45 88 Q40 88 40 80 Z" fill="#ffffff"/></svg>
-  <svg class="cloud cloud2" viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg"><path d="M40 80 Q10 80 10 55 Q10 30 35 30 Q40 8 68 8 Q95 8 100 30 Q125 25 130 48 Q155 48 155 68 Q155 88 130 88 L45 88 Q40 88 40 80 Z" fill="#ffffff"/></svg>
-  <svg class="cloud cloud3" viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg"><path d="M40 80 Q10 80 10 55 Q10 30 35 30 Q40 8 68 8 Q95 8 100 30 Q125 25 130 48 Q155 48 155 68 Q155 88 130 88 L45 88 Q40 88 40 80 Z" fill="#ffffff"/></svg>
-  <svg class="cloud cloud4" viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg"><path d="M40 80 Q10 80 10 55 Q10 30 35 30 Q40 8 68 8 Q95 8 100 30 Q125 25 130 48 Q155 48 155 68 Q155 88 130 88 L45 88 Q40 88 40 80 Z" fill="#ffffff"/></svg>
+  <div class="cloud-layer">
+    <svg class="cloud cloud1" viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg"><path d="M40 80 Q10 80 10 55 Q10 30 35 30 Q40 8 68 8 Q95 8 100 30 Q125 25 130 48 Q155 48 155 68 Q155 88 130 88 L45 88 Q40 88 40 80 Z" fill="#ffffff"/></svg>
+    <svg class="cloud cloud2" viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg"><path d="M40 80 Q10 80 10 55 Q10 30 35 30 Q40 8 68 8 Q95 8 100 30 Q125 25 130 48 Q155 48 155 68 Q155 88 130 88 L45 88 Q40 88 40 80 Z" fill="#ffffff"/></svg>
+    <svg class="cloud cloud3" viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg"><path d="M40 80 Q10 80 10 55 Q10 30 35 30 Q40 8 68 8 Q95 8 100 30 Q125 25 130 48 Q155 48 155 68 Q155 88 130 88 L45 88 Q40 88 40 80 Z" fill="#ffffff"/></svg>
+    <svg class="cloud cloud4" viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg"><path d="M40 80 Q10 80 10 55 Q10 30 35 30 Q40 8 68 8 Q95 8 100 30 Q125 25 130 48 Q155 48 155 68 Q155 88 130 88 L45 88 Q40 88 40 80 Z" fill="#ffffff"/></svg>
+  </div>
 
   <div class="wrap">
     <div class="topbar">
@@ -324,7 +339,7 @@ function weatherIcon(code){
 }
 
 let lang = 'ko';
-let currentData = null; // { current, daily, place, lat, lon, isApprox }
+let currentData = null;
 let selectedIndex = 0;
 let currentStateKey = 'finding';
 
@@ -555,7 +570,6 @@ function toggleLang(){
     document.getElementById('lang-btn').textContent = STRINGS[lang].langBtn;
     return;
   }
-  // 위치 이름을 새 언어로 다시 조회하고 전체 다시 렌더링
   reverseGeocode(currentData.lat, currentData.lon, lang).then(place => {
     currentData.place = place;
     const s = STRINGS[lang];
