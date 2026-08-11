@@ -16,6 +16,7 @@
     --yellow:#FEC600;
     --ink:#0B4A73;
     --ink-soft:#5A93B8;
+    --warn:#E4572E;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -40,9 +41,17 @@
 
   .wrap{ position:relative; z-index:1; max-width:480px; margin:0 auto; padding:32px 20px 48px; }
 
-  .topbar{ display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:28px; }
+  .topbar{ display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:28px; position:relative; }
   .topbar .logo{ font-family:'Jua',sans-serif; font-size:20px; color:var(--white); }
   .topbar .logo-dot{ width:8px;height:8px;border-radius:50%; background:var(--yellow); }
+  .lang-btn{
+    position:absolute; right:0; top:50%; transform:translateY(-50%);
+    background:rgba(255,255,255,0.18); border:none; color:var(--white);
+    font-family:'Noto Sans KR',sans-serif; font-weight:700; font-size:12px;
+    padding:6px 10px; border-radius:999px; cursor:pointer; box-shadow:none;
+    display:flex; align-items:center; gap:4px;
+  }
+  .lang-btn:active{ transform:translateY(-50%); box-shadow:none; background:rgba(255,255,255,0.3); }
 
   #state{
     background:var(--white); border-radius:32px; padding:44px 28px; text-align:center;
@@ -64,7 +73,7 @@
     background:var(--white); border-radius:32px; padding:30px 26px 26px;
     box-shadow:0 16px 40px rgba(0,50,90,0.18); text-align:center;
   }
-  .badge-row{ display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
+  .badge-row{ display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:6px; flex-wrap:wrap; }
   .badge{
     display:inline-block; font-size:11px; color:var(--ink-soft);
     background:#EAF6FF; border-radius:999px; padding:4px 10px;
@@ -75,6 +84,11 @@
     padding:4px 10px; border-radius:999px; box-shadow:none;
   }
   .precise-btn:active{ transform:none; box-shadow:none; background:#EAF6FF; }
+  .ip-warning{
+    font-size:11px; color:var(--warn); background:#FFF0EC; border-radius:12px;
+    padding:6px 10px; margin-bottom:12px; display:none; line-height:1.5;
+  }
+  .ip-warning.show{ display:block; }
 
   .place{ font-size:14px; font-weight:500; color:var(--ink-soft); margin-bottom:2px; }
   .place b{color:var(--sky); font-weight:700;}
@@ -107,8 +121,10 @@
   }
   .day:hover{ border-color:#CBE8FA; }
   .day.selected{ background:var(--yellow); }
-  .day .d-name{ font-size:11px; font-weight:700; color:var(--ink-soft); margin-bottom:4px; }
+  .day .d-name{ font-size:11px; font-weight:700; color:var(--ink-soft); margin-bottom:1px; }
   .day.selected .d-name{ color:#7A4E00; }
+  .day .d-date{ font-size:9px; color:var(--ink-soft); opacity:0.8; margin-bottom:4px; }
+  .day.selected .d-date{ color:#946600; }
   .day .d-icon{ width:30px; height:30px; margin:0 auto 4px; }
   .day .d-icon svg{width:100%; height:100%;}
   .day .d-hi{ font-family:'Baloo 2',sans-serif; font-weight:700; font-size:13px; color:var(--sky); }
@@ -134,7 +150,8 @@
   <div class="wrap">
     <div class="topbar">
       <span class="logo-dot"></span>
-      <span class="logo">오늘 날씨</span>
+      <span class="logo" id="logo-text">오늘 날씨</span>
+      <button class="lang-btn" id="lang-btn" onclick="toggleLang()">🌐 EN</button>
     </div>
 
     <div id="state">
@@ -158,6 +175,7 @@
           <span class="badge" id="loc-badge">📍 GPS 위치</span>
           <button class="precise-btn" id="precise-btn" onclick="requestPrecise()">🎯 정확한 위치로 확인</button>
         </div>
+        <div class="ip-warning" id="ip-warning"></div>
         <div class="place" id="location">위치 확인 중…</div>
         <div class="date" id="today-date">—</div>
 
@@ -167,14 +185,14 @@
         <div class="range" id="range">최고 <span class="hi">—</span> · 최저 <span class="lo">—</span></div>
 
         <div class="gauges">
-          <div class="gauge"><div class="g-icon">🤗</div><div class="g-label">체감</div><div class="g-val" id="feels">—°</div></div>
+          <div class="gauge"><div class="g-icon">🤗</div><div class="g-label" id="g1-label">체감</div><div class="g-val" id="feels">—°</div></div>
           <div class="gauge"><div class="g-icon" id="g2-icon">💧</div><div class="g-label" id="g2-label">습도</div><div class="g-val" id="humidity">—%</div></div>
-          <div class="gauge"><div class="g-icon">🍃</div><div class="g-label">바람</div><div class="g-val" id="wind">—</div></div>
-          <div class="gauge"><div class="g-icon">☔</div><div class="g-label">강수</div><div class="g-val" id="precip">—</div></div>
+          <div class="gauge"><div class="g-icon">🍃</div><div class="g-label" id="g3-label">바람</div><div class="g-val" id="wind">—</div></div>
+          <div class="gauge"><div class="g-icon">☔</div><div class="g-label" id="g4-label">강수</div><div class="g-val" id="precip">—</div></div>
         </div>
 
         <div class="sun-track">
-          <div class="sun-track-title">해가 뜨고 지는 시간</div>
+          <div class="sun-track-title" id="sun-track-title">해가 뜨고 지는 시간</div>
           <svg viewBox="0 0 380 90" width="100%" height="auto">
             <path d="M 20 78 Q 190 -6 360 78" fill="none" stroke="#CBE8FA" stroke-width="4" stroke-linecap="round"/>
             <circle id="sun-dot" cx="20" cy="78" r="10" fill="#FEC600"/>
@@ -185,29 +203,79 @@
           </div>
         </div>
 
-        <div class="week-title">이번 주 예보 (날짜를 눌러보세요)</div>
+        <div class="week-title" id="week-title">이번 주 예보 (날짜를 눌러보세요)</div>
         <div class="week" id="week"></div>
       </div>
 
       <footer>
-        <span id="coords">—</span> · <span id="updated">—</span>
+        <span id="coords">—</span> · <span id="updated-label">업데이트</span> <span id="updated">—</span>
       </footer>
     </div>
   </div>
 
 <script>
+const STRINGS = {
+  ko: {
+    logo:'오늘 날씨', langBtn:'🌐 EN',
+    findingTitle:'위치를 찾는 중', findingMsg:'잠시만 기다려주세요',
+    errorTitle:'위치를 확인할 수 없어요',
+    errorGeneric:'네트워크 상태를 확인한 뒤<br>다시 시도해 주세요.',
+    errorPermission:'브라우저 설정에서 위치 접근을<br>허용한 뒤 다시 시도해 주세요.',
+    errorUnsupported:'이 브라우저는 위치 정보 기능을 지원하지 않아요.',
+    retry:'다시 시도하기',
+    gpsBadge:'📍 GPS 위치', ipBadge:'📶 네트워크 기반 위치(대략)',
+    ipWarning:'⚠️ 정확도가 낮을 수 있어요. 특히 해외에서는 실제 위치와 다르게 나올 수 있습니다. "정확한 위치로 확인"을 눌러보세요.',
+    preciseBtn:'🎯 정확한 위치로 확인', preciseLoading:'위치 확인 중…',
+    preciseDenied:'권한을 허용해주세요', preciseUnsupported:'GPS 미지원',
+    feels:'체감', humidity:'습도', wind:'바람', precip:'강수', precipProb:'강수확률',
+    sunTrackTitle:'해가 뜨고 지는 시간', weekTitle:'이번 주 예보 (날짜를 눌러보세요)',
+    today:'오늘', high:'최고', low:'최저', updated:'업데이트',
+    locationSuffix:'의 날씨'
+  },
+  en: {
+    logo:"Today's Weather", langBtn:'🌐 한글',
+    findingTitle:'Finding your location', findingMsg:'Please wait a moment',
+    errorTitle:"Couldn't get your location",
+    errorGeneric:'Please check your network<br>and try again.',
+    errorPermission:'Please allow location access in<br>your browser settings and try again.',
+    errorUnsupported:"This browser doesn't support location services.",
+    retry:'Try again',
+    gpsBadge:'📍 GPS location', ipBadge:'📶 Network-based (approx.)',
+    ipWarning:'⚠️ This may be inaccurate — especially abroad, it can show the wrong location. Try "Get precise location".',
+    preciseBtn:'🎯 Get precise location', preciseLoading:'Locating…',
+    preciseDenied:'Please allow permission', preciseUnsupported:'GPS not supported',
+    feels:'Feels like', humidity:'Humidity', wind:'Wind', precip:'Precip.', precipProb:'Rain chance',
+    sunTrackTitle:'Sunrise & sunset', weekTitle:'This week (tap a day)',
+    today:'Today', high:'High', low:'Low', updated:'Updated',
+    locationSuffix:''
+  }
+};
+
 const WEATHER_TEXT = {
-  0:'맑음', 1:'대체로 맑음', 2:'구름 조금', 3:'흐림',
-  45:'안개', 48:'짙은 안개',
-  51:'약한 이슬비', 53:'이슬비', 55:'강한 이슬비',
-  56:'착빙성 이슬비', 57:'강한 착빙성 이슬비',
-  61:'약한 비', 63:'비', 65:'강한 비',
-  66:'착빙성 비', 67:'강한 착빙성 비',
-  71:'약한 눈', 73:'눈', 75:'강한 눈',
-  77:'싸락눈',
-  80:'약한 소나기', 81:'소나기', 82:'강한 소나기',
-  85:'약한 소나기눈', 86:'소나기눈',
-  95:'뇌우', 96:'우박 동반 뇌우', 99:'강한 우박 동반 뇌우'
+  ko: {
+    0:'맑음', 1:'대체로 맑음', 2:'구름 조금', 3:'흐림',
+    45:'안개', 48:'짙은 안개',
+    51:'약한 이슬비', 53:'이슬비', 55:'강한 이슬비',
+    56:'착빙성 이슬비', 57:'강한 착빙성 이슬비',
+    61:'약한 비', 63:'비', 65:'강한 비',
+    66:'착빙성 비', 67:'강한 착빙성 비',
+    71:'약한 눈', 73:'눈', 75:'강한 눈', 77:'싸락눈',
+    80:'약한 소나기', 81:'소나기', 82:'강한 소나기',
+    85:'약한 소나기눈', 86:'소나기눈',
+    95:'뇌우', 96:'우박 동반 뇌우', 99:'강한 우박 동반 뇌우'
+  },
+  en: {
+    0:'Clear', 1:'Mostly clear', 2:'Partly cloudy', 3:'Cloudy',
+    45:'Fog', 48:'Dense fog',
+    51:'Light drizzle', 53:'Drizzle', 55:'Heavy drizzle',
+    56:'Freezing drizzle', 57:'Heavy freezing drizzle',
+    61:'Light rain', 63:'Rain', 65:'Heavy rain',
+    66:'Freezing rain', 67:'Heavy freezing rain',
+    71:'Light snow', 73:'Snow', 75:'Heavy snow', 77:'Snow grains',
+    80:'Light showers', 81:'Showers', 82:'Heavy showers',
+    85:'Light snow showers', 86:'Snow showers',
+    95:'Thunderstorm', 96:'Thunderstorm w/ hail', 99:'Severe thunderstorm w/ hail'
+  }
 };
 
 function weatherIcon(code){
@@ -255,6 +323,11 @@ function weatherIcon(code){
   return `<svg viewBox="0 0 100 100">${sun}</svg>`;
 }
 
+let lang = 'ko';
+let currentData = null; // { current, daily, place, lat, lon, isApprox }
+let selectedIndex = 0;
+let currentStateKey = 'finding';
+
 const stateTitle = document.getElementById('state-title');
 const stateMsg = document.getElementById('state-msg');
 const stateBtn = document.getElementById('state-btn');
@@ -262,28 +335,33 @@ const stateBox = document.getElementById('state');
 const main = document.getElementById('main');
 const preciseBtn = document.getElementById('precise-btn');
 
-let currentData = null; // { current, daily, place, lat, lon }
-let selectedIndex = 0;
-
-function showFatalError(title, msg){
-  stateTitle.textContent = title;
-  stateMsg.innerHTML = msg;
-  stateBtn.innerHTML = '<button onclick="location.reload()">다시 시도하기</button>';
+function setState(key){
+  currentStateKey = key;
+  const s = STRINGS[lang];
+  if(key === 'finding'){
+    stateTitle.textContent = s.findingTitle;
+    stateMsg.innerHTML = s.findingMsg;
+    stateBtn.innerHTML = '';
+  } else {
+    stateTitle.textContent = s.errorTitle;
+    stateMsg.innerHTML = s[key] || s.errorGeneric;
+    stateBtn.innerHTML = `<button onclick="location.reload()">${s.retry}</button>`;
+  }
 }
 
 function toHM(iso){
-  return new Date(iso).toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit', hour12:false});
+  return new Date(iso).toLocaleTimeString(lang==='ko'?'ko-KR':'en-US', {hour:'2-digit', minute:'2-digit', hour12:false});
 }
 
-async function reverseGeocode(lat, lon){
+async function reverseGeocode(lat, lon, language){
   try{
-    const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`);
+    const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=${language}`);
     const data = await res.json();
     const city = data.city || data.locality || data.principalSubdivision || '';
     const region = data.principalSubdivision && data.principalSubdivision !== city ? data.principalSubdivision : '';
-    return [city, region].filter(Boolean).join(', ') || '알 수 없는 위치';
+    return [city, region].filter(Boolean).join(', ') || (language==='ko' ? '알 수 없는 위치' : 'Unknown location');
   }catch(e){
-    return '알 수 없는 위치';
+    return language==='ko' ? '알 수 없는 위치' : 'Unknown location';
   }
 }
 
@@ -292,23 +370,25 @@ async function ipLocate(){
   if(!res.ok) throw new Error('ip locate failed');
   const data = await res.json();
   if(!data.latitude || !data.longitude) throw new Error('no coords');
-  const place = [data.city, data.region].filter(Boolean).join(', ') || data.country_name || '알 수 없는 위치';
-  return { lat:data.latitude, lon:data.longitude, place };
+  return { lat:data.latitude, lon:data.longitude };
 }
 
 function renderWeek(daily){
   const week = document.getElementById('week');
   week.innerHTML = '';
   const todayStr = new Date().toISOString().slice(0,10);
+  const locale = lang==='ko' ? 'ko-KR' : 'en-US';
   daily.time.forEach((dateStr, i) => {
     const isToday = dateStr === todayStr;
     const d = new Date(dateStr + 'T00:00:00');
-    const wd = isToday ? '오늘' : d.toLocaleDateString('ko-KR', {weekday:'short'});
+    const wd = isToday ? STRINGS[lang].today : d.toLocaleDateString(locale, {weekday:'short'});
+    const dateSmall = `${d.getMonth()+1}/${d.getDate()}`;
     const div = document.createElement('div');
     div.className = 'day';
     div.dataset.index = i;
     div.innerHTML = `
       <div class="d-name">${wd}</div>
+      <div class="d-date">${dateSmall}</div>
       <div class="d-icon">${weatherIcon(daily.weather_code[i])}</div>
       <div class="d-hi">${Math.round(daily.temperature_2m_max[i])}°</div>
       <div class="d-lo">${Math.round(daily.temperature_2m_min[i])}°</div>
@@ -343,25 +423,26 @@ function showDay(i){
   selectedIndex = i;
   updateWeekSelection();
 
+  const s = STRINGS[lang];
   const daily = currentData.daily;
   const isToday = i === 0;
   const code = daily.weather_code[i];
+  const locale = lang==='ko' ? 'ko-KR' : 'en-US';
 
   document.getElementById('weather-icon').innerHTML = weatherIcon(code);
-  document.getElementById('condition').textContent = WEATHER_TEXT[code] || '알 수 없음';
-  document.getElementById('range').innerHTML = `최고 <span class="hi">${Math.round(daily.temperature_2m_max[i])}°</span> · 최저 <span class="lo">${Math.round(daily.temperature_2m_min[i])}°</span>`;
+  document.getElementById('condition').textContent = WEATHER_TEXT[lang][code] || '—';
+  document.getElementById('range').innerHTML = `${s.high} <span class="hi">${Math.round(daily.temperature_2m_max[i])}°</span> · ${s.low} <span class="lo">${Math.round(daily.temperature_2m_min[i])}°</span>`;
 
-  const dateLabel = new Date(daily.time[i] + 'T00:00:00').toLocaleDateString('ko-KR', {month:'long', day:'numeric', weekday:'long'});
-  document.getElementById('today-date').textContent = isToday ? `오늘 · ${dateLabel}` : dateLabel;
+  const dateLabel = new Date(daily.time[i] + 'T00:00:00').toLocaleDateString(locale, {month:'long', day:'numeric', weekday:'long'});
+  document.getElementById('today-date').textContent = isToday ? `${s.today} · ${dateLabel}` : dateLabel;
 
   const g2icon = document.getElementById('g2-icon');
-  const g2label = document.getElementById('g2-label');
 
   if(isToday && currentData.current){
     const cur = currentData.current;
     document.getElementById('temp').textContent = `${Math.round(cur.temperature_2m)}°`;
     document.getElementById('feels').textContent = `${Math.round(cur.apparent_temperature)}°`;
-    g2icon.textContent = '💧'; g2label.textContent = '습도';
+    g2icon.textContent = '💧'; document.getElementById('g2-label').textContent = s.humidity;
     document.getElementById('humidity').textContent = `${Math.round(cur.relative_humidity_2m)}%`;
     document.getElementById('wind').textContent = `${Math.round(cur.wind_speed_10m)}`;
     document.getElementById('precip').textContent = `${cur.precipitation}mm`;
@@ -370,7 +451,7 @@ function showDay(i){
   } else {
     document.getElementById('temp').textContent = `${Math.round(daily.temperature_2m_max[i])}°`;
     document.getElementById('feels').textContent = `${Math.round(daily.apparent_temperature_max[i])}°`;
-    g2icon.textContent = '🌂'; g2label.textContent = '강수확률';
+    g2icon.textContent = '🌂'; document.getElementById('g2-label').textContent = s.precipProb;
     document.getElementById('humidity').textContent = `${Math.round(daily.precipitation_probability_max[i] ?? 0)}%`;
     document.getElementById('wind').textContent = `${Math.round(daily.wind_speed_10m_max[i])}`;
     document.getElementById('precip').textContent = `${daily.precipitation_sum[i]}mm`;
@@ -379,9 +460,26 @@ function showDay(i){
 
   document.getElementById('sunrise').textContent = toHM(daily.sunrise[i]);
   document.getElementById('sunset').textContent = toHM(daily.sunset[i]);
+  document.getElementById('g1-label').textContent = s.feels;
+  document.getElementById('g3-label').textContent = s.wind;
+  document.getElementById('g4-label').textContent = s.precip;
 }
 
-async function loadWeather(lat, lon, placeNameOverride){
+function renderStaticLabels(){
+  const s = STRINGS[lang];
+  document.getElementById('logo-text').textContent = s.logo;
+  document.getElementById('lang-btn').textContent = s.langBtn;
+  document.getElementById('sun-track-title').textContent = s.sunTrackTitle;
+  document.getElementById('week-title').textContent = s.weekTitle;
+  document.getElementById('updated-label').textContent = s.updated;
+  document.getElementById('loc-badge').textContent = currentData && currentData.isApprox ? s.ipBadge : s.gpsBadge;
+  document.getElementById('precise-btn').textContent = s.preciseBtn;
+  const warn = document.getElementById('ip-warning');
+  warn.textContent = s.ipWarning;
+  warn.classList.toggle('show', !!(currentData && currentData.isApprox));
+}
+
+async function loadWeather(lat, lon, isApprox){
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
     `&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,precipitation,weather_code` +
     `&daily=temperature_2m_max,temperature_2m_min,apparent_temperature_max,weather_code,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,sunrise,sunset` +
@@ -389,20 +487,23 @@ async function loadWeather(lat, lon, placeNameOverride){
 
   const [weatherRes, placeName] = await Promise.all([
     fetch(url).then(r => { if(!r.ok) throw new Error('fail'); return r.json(); }),
-    placeNameOverride ? Promise.resolve(placeNameOverride) : reverseGeocode(lat, lon)
+    reverseGeocode(lat, lon, lang)
   ]);
 
   currentData = {
     current: weatherRes.current,
     daily: weatherRes.daily,
     place: placeName,
-    lat, lon
+    lat, lon,
+    isApprox: !!isApprox
   };
 
-  document.getElementById('location').innerHTML = `<b>${placeName}</b>의 날씨`;
+  const s = STRINGS[lang];
+  document.getElementById('location').innerHTML = `<b>${placeName}</b>${s.locationSuffix}`;
   document.getElementById('coords').textContent = `${lat.toFixed(3)}, ${lon.toFixed(3)}`;
-  document.getElementById('updated').textContent = `업데이트 ${new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false})}`;
+  document.getElementById('updated').textContent = new Date().toLocaleTimeString(lang==='ko'?'ko-KR':'en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
 
+  renderStaticLabels();
   renderWeek(weatherRes.daily);
   showDay(0);
 
@@ -410,38 +511,35 @@ async function loadWeather(lat, lon, placeNameOverride){
   main.style.display = 'block';
 }
 
-async function useIpFallback(reasonMsg){
+async function useIpFallback(){
   try{
-    stateMsg.textContent = reasonMsg;
+    setState('finding');
     const loc = await ipLocate();
-    document.getElementById('loc-badge').textContent = '📶 네트워크 기반 위치(대략)';
-    await loadWeather(loc.lat, loc.lon, loc.place);
+    await loadWeather(loc.lat, loc.lon, true);
   }catch(e){
-    showFatalError('위치를 확인할 수 없어요', '네트워크 상태를 확인한 뒤<br>다시 시도해 주세요.');
+    setState('errorGeneric');
   }
 }
 
-// 사용자가 직접 눌러서 정확한 GPS 위치를 다시 요청 (IP 기반으로 떴을 때 특히 유용)
 function requestPrecise(){
   if(!navigator.geolocation){
-    preciseBtn.textContent = '이 브라우저는 GPS 미지원';
+    preciseBtn.textContent = STRINGS[lang].preciseUnsupported;
     return;
   }
-  const original = preciseBtn.textContent;
-  preciseBtn.textContent = '위치 확인 중…';
+  const original = STRINGS[lang].preciseBtn;
+  preciseBtn.textContent = STRINGS[lang].preciseLoading;
   preciseBtn.disabled = true;
 
   navigator.geolocation.getCurrentPosition(
     async (pos) => {
-      document.getElementById('loc-badge').textContent = '📍 GPS 위치';
       try{
-        await loadWeather(pos.coords.latitude, pos.coords.longitude);
-      }catch(e){ /* ignore, keep previous data */ }
+        await loadWeather(pos.coords.latitude, pos.coords.longitude, false);
+      }catch(e){ /* keep previous data */ }
       preciseBtn.textContent = original;
       preciseBtn.disabled = false;
     },
     () => {
-      preciseBtn.textContent = '권한을 허용해주세요';
+      preciseBtn.textContent = STRINGS[lang].preciseDenied;
       preciseBtn.disabled = false;
       setTimeout(() => { preciseBtn.textContent = original; }, 2500);
     },
@@ -449,24 +547,43 @@ function requestPrecise(){
   );
 }
 
+function toggleLang(){
+  lang = lang === 'ko' ? 'en' : 'ko';
+  if(!currentData){
+    setState(currentStateKey);
+    document.getElementById('logo-text').textContent = STRINGS[lang].logo;
+    document.getElementById('lang-btn').textContent = STRINGS[lang].langBtn;
+    return;
+  }
+  // 위치 이름을 새 언어로 다시 조회하고 전체 다시 렌더링
+  reverseGeocode(currentData.lat, currentData.lon, lang).then(place => {
+    currentData.place = place;
+    const s = STRINGS[lang];
+    document.getElementById('location').innerHTML = `<b>${place}</b>${s.locationSuffix}`;
+    document.getElementById('updated').textContent = new Date().toLocaleTimeString(lang==='ko'?'ko-KR':'en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+    renderStaticLabels();
+    renderWeek(currentData.daily);
+    showDay(selectedIndex);
+  });
+}
+
 function init(){
   if(!navigator.geolocation){
-    useIpFallback('GPS를 지원하지 않아 대략적인 위치로 불러오는 중…');
+    useIpFallback();
     return;
   }
   navigator.geolocation.getCurrentPosition(
     async (pos) => {
-      document.getElementById('loc-badge').textContent = '📍 GPS 위치';
       try{
-        await loadWeather(pos.coords.latitude, pos.coords.longitude);
+        await loadWeather(pos.coords.latitude, pos.coords.longitude, false);
       }catch(e){
-        useIpFallback('정확한 위치 정보를 불러오지 못해 대략적인 위치로 다시 시도하는 중…');
+        useIpFallback();
       }
     },
     () => {
-      useIpFallback('위치 권한이 없어 대략적인 위치로 불러오는 중…');
+      useIpFallback();
     },
-    { enableHighAccuracy:true, timeout:8000, maximumAge:300000 }
+    { enableHighAccuracy:true, timeout:10000, maximumAge:0 }
   );
 }
 
