@@ -63,19 +63,28 @@
 
   .wrap{ position:relative; z-index:1; max-width:480px; margin:0 auto; padding:32px 20px 48px; overflow-x:hidden; }
 
+  /* 상단바: 좌(버튼) · 중앙(로고) · 우(버튼)
+     좌우 칸을 같은 폭(minmax(0,1fr))으로 잡아서 로고가 항상 정중앙에 오게 함 */
   .topbar{
-    display:grid; grid-template-columns:auto 1fr auto; align-items:center;
+    display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center;
     gap:8px; margin-bottom:28px;
   }
-  .topbar .brand{ display:flex; align-items:center; justify-content:center; gap:8px; min-width:0; }
-  .topbar .logo{ font-family:'Jua',sans-serif; font-size:20px; color:var(--white); white-space:nowrap; }
-  .topbar .logo-dot{ width:8px;height:8px;border-radius:50%; background:var(--yellow); flex:none; }
-  .pill-btn{
-    background:rgba(255,255,255,0.18); border:none; color:var(--white);
-    font-family:'Noto Sans KR',sans-serif; font-weight:700; font-size:12px;
-    padding:6px 10px; border-radius:999px; cursor:pointer; box-shadow:none;
-    white-space:nowrap;
+  .topbar .brand{ display:flex; align-items:center; justify-content:center; gap:8px; }
+  .topbar .logo{
+    font-family:'Jua',sans-serif; color:var(--white); white-space:nowrap;
+    font-size:clamp(15px, 5vw, 20px);   /* 화면이 좁으면 로고만 살짝 작아짐 */
   }
+  .topbar .logo-dot{ width:8px;height:8px;border-radius:50%; background:var(--yellow); flex:none; }
+  /* 좌우 버튼: 크기가 같은 작은 버튼 (아이콘 + 짧은 글자) */
+  .pill-btn{
+    width:50px; height:42px; padding:0; border-radius:21px;
+    background:rgba(255,255,255,0.18); border:none; color:var(--white);
+    font-family:'Noto Sans KR',sans-serif; font-weight:700; line-height:1;
+    cursor:pointer; box-shadow:none;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  }
+  .pill-btn .ico{ font-size:17px; }
+  .pill-btn .lbl{ font-size:10px; white-space:nowrap; }
   .pill-btn:active{ transform:none; box-shadow:none; background:rgba(255,255,255,0.3); }
   .nav-btn{ justify-self:start; }
   .lang-btn{ justify-self:end; }
@@ -195,10 +204,6 @@
     margin-top:26px; letter-spacing:0.02em;
   }
 
-  @media (max-width:400px){
-    .topbar .logo{ font-size:17px; }
-    .pill-btn{ font-size:11px; padding:6px 9px; }
-  }
   @media (max-width:380px){
     .temp{font-size:58px;}
     .icon-wrap{width:96px; height:96px;}
@@ -216,12 +221,16 @@
 
   <div class="wrap">
     <div class="topbar">
-      <button class="pill-btn nav-btn" id="nav-btn" onclick="onNavClick()">🔋 배터리 교체 방법</button>
+      <button class="pill-btn nav-btn" id="nav-btn" onclick="onNavClick()" aria-label="배터리 교체 방법" title="배터리 교체 방법">
+        <span class="ico" id="nav-ico">🔋</span><span class="lbl" id="nav-lbl">배터리</span>
+      </button>
       <div class="brand">
         <span class="logo-dot"></span>
         <span class="logo" id="logo-text">오늘 날씨</span>
       </div>
-      <button class="pill-btn lang-btn" id="lang-btn" onclick="toggleLang()">🌐 EN</button>
+      <button class="pill-btn lang-btn" id="lang-btn" onclick="toggleLang()" aria-label="English" title="English">
+        <span class="ico">🌐</span><span class="lbl" id="lang-lbl">EN</span>
+      </button>
     </div>
 
     <div id="view-weather">
@@ -301,7 +310,7 @@
 <script>
 const STRINGS = {
   ko: {
-    logo:'오늘 날씨', langBtn:'🌐 EN',
+    logo:'오늘 날씨',
     findingTitle:'위치를 찾는 중', findingMsg:'잠시만 기다려주세요',
     errorTitle:'위치를 확인할 수 없어요',
     errorGeneric:'네트워크 상태를 확인한 뒤<br>다시 시도해 주세요.',
@@ -316,12 +325,14 @@ const STRINGS = {
     sunTrackTitle:'해가 뜨고 지는 시간', weekTitle:'이번 주 예보 (날짜를 눌러보세요)',
     today:'오늘', high:'최고', low:'최저', updated:'업데이트',
     locationSuffix:'의 날씨',
-    navBattery:'🔋 배터리 교체 방법', navBack:'← 날씨',
+    navBatteryIco:'🔋', navBatteryLbl:'배터리', navBatteryFull:'배터리 교체 방법',
+    navBackIco:'←',     navBackLbl:'날씨',     navBackFull:'날씨로 돌아가기',
+    langLbl:'EN', langFull:'English',
     batteryTitle:'배터리 교체 방법', batterySub:'총 5단계로 진행돼요',
     imagePlaceholder:'이미지를 넣어주세요'
   },
   en: {
-    logo:"Today's Weather", langBtn:'🌐 한글',
+    logo:"Today's Weather",
     findingTitle:'Finding your location', findingMsg:'Please wait a moment',
     errorTitle:"Couldn't get your location",
     errorGeneric:'Please check your network<br>and try again.',
@@ -336,7 +347,9 @@ const STRINGS = {
     sunTrackTitle:'Sunrise & sunset', weekTitle:'This week (tap a day)',
     today:'Today', high:'High', low:'Low', updated:'Updated',
     locationSuffix:'',
-    navBattery:'🔋 Battery guide', navBack:'← Weather',
+    navBatteryIco:'🔋', navBatteryLbl:'Battery', navBatteryFull:'How to replace the battery',
+    navBackIco:'←',     navBackLbl:'Weather', navBackFull:'Back to weather',
+    langLbl:'한글', langFull:'한국어',
     batteryTitle:'How to replace the battery', batterySub:'5 steps in total',
     imagePlaceholder:'Add your image here'
   }
@@ -573,7 +586,6 @@ function showDay(i){
 function renderStaticLabels(){
   const s = STRINGS[lang];
   document.getElementById('logo-text').textContent = s.logo;
-  document.getElementById('lang-btn').textContent = s.langBtn;
   document.getElementById('sun-track-title').textContent = s.sunTrackTitle;
   document.getElementById('week-title').textContent = s.weekTitle;
   document.getElementById('updated-label').textContent = s.updated;
@@ -683,8 +695,20 @@ function updateChrome(){
   const s = STRINGS[lang];
   document.documentElement.lang = lang;
   document.getElementById('logo-text').textContent = s.logo;
-  document.getElementById('lang-btn').textContent = s.langBtn;
-  document.getElementById('nav-btn').textContent = currentView === 'weather' ? s.navBattery : s.navBack;
+
+  // 좌측 버튼: 날씨 화면에서는 '배터리', 배터리 페이지에서는 '← 날씨'
+  const onWeather = currentView === 'weather';
+  const nav = document.getElementById('nav-btn');
+  document.getElementById('nav-ico').textContent = onWeather ? s.navBatteryIco : s.navBackIco;
+  document.getElementById('nav-lbl').textContent = onWeather ? s.navBatteryLbl : s.navBackLbl;
+  nav.setAttribute('aria-label', onWeather ? s.navBatteryFull : s.navBackFull);
+  nav.title = onWeather ? s.navBatteryFull : s.navBackFull;
+
+  // 우측 버튼: 누르면 바뀔 언어를 표시
+  const langBtn = document.getElementById('lang-btn');
+  document.getElementById('lang-lbl').textContent = s.langLbl;
+  langBtn.setAttribute('aria-label', s.langFull);
+  langBtn.title = s.langFull;
   renderBattery();
 }
 
