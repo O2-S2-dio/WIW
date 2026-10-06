@@ -63,17 +63,22 @@
 
   .wrap{ position:relative; z-index:1; max-width:480px; margin:0 auto; padding:32px 20px 48px; overflow-x:hidden; }
 
-  .topbar{ display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:28px; position:relative; }
-  .topbar .logo{ font-family:'Jua',sans-serif; font-size:20px; color:var(--white); }
-  .topbar .logo-dot{ width:8px;height:8px;border-radius:50%; background:var(--yellow); }
-  .lang-btn{
-    position:absolute; right:0; top:50%; transform:translateY(-50%);
+  .topbar{
+    display:grid; grid-template-columns:auto 1fr auto; align-items:center;
+    gap:8px; margin-bottom:28px;
+  }
+  .topbar .brand{ display:flex; align-items:center; justify-content:center; gap:8px; min-width:0; }
+  .topbar .logo{ font-family:'Jua',sans-serif; font-size:20px; color:var(--white); white-space:nowrap; }
+  .topbar .logo-dot{ width:8px;height:8px;border-radius:50%; background:var(--yellow); flex:none; }
+  .pill-btn{
     background:rgba(255,255,255,0.18); border:none; color:var(--white);
     font-family:'Noto Sans KR',sans-serif; font-weight:700; font-size:12px;
     padding:6px 10px; border-radius:999px; cursor:pointer; box-shadow:none;
-    display:flex; align-items:center; gap:4px;
+    white-space:nowrap;
   }
-  .lang-btn:active{ transform:translateY(-50%); box-shadow:none; background:rgba(255,255,255,0.3); }
+  .pill-btn:active{ transform:none; box-shadow:none; background:rgba(255,255,255,0.3); }
+  .nav-btn{ justify-self:start; }
+  .lang-btn{ justify-self:end; }
 
   #state{
     background:var(--white); border-radius:32px; padding:44px 28px; text-align:center;
@@ -157,6 +162,43 @@
 
   footer{ text-align:center; font-size:11px; color:rgba(255,255,255,0.8); margin-top:18px; }
 
+  /* ---- 배터리 교체 방법 페이지 ---- */
+  #view-battery{ display:none; }
+  .battery-head{ text-align:center; color:var(--white); margin-bottom:20px; }
+  .battery-head h1{ font-family:'Jua',sans-serif; font-weight:400; font-size:24px; margin:0 0 6px; }
+  .battery-head p{ font-size:13px; margin:0; opacity:0.9; }
+  .step{
+    background:var(--white); border-radius:28px; padding:22px 20px 20px;
+    box-shadow:0 16px 40px rgba(0,50,90,0.18); margin-bottom:16px;
+  }
+  .step-head{ display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .step-num{
+    flex:none; width:36px; height:36px; border-radius:50%;
+    background:var(--yellow); color:#7A4E00;
+    font-family:'Baloo 2',sans-serif; font-weight:800; font-size:17px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .step-label{ font-size:10px; font-weight:700; color:var(--ink-soft); letter-spacing:0.08em; }
+  .step-title{ font-family:'Jua',sans-serif; font-size:18px; color:var(--ink); line-height:1.3; }
+  .step-img{ display:block; width:100%; height:auto; border-radius:20px; }
+  .img-slot{
+    aspect-ratio:4 / 3; width:100%;
+    background:#EAF6FF; border:2px dashed #CBE8FA; border-radius:20px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    color:var(--ink-soft); font-size:12px;
+  }
+  .img-slot .slot-icon{ font-size:28px; opacity:0.7; }
+  .step-desc{ font-size:13px; line-height:1.6; color:var(--ink); margin:12px 0 0; text-align:left; }
+
+  .copyright{
+    text-align:center; font-size:12px; color:rgba(255,255,255,0.85);
+    margin-top:26px; letter-spacing:0.02em;
+  }
+
+  @media (max-width:400px){
+    .topbar .logo{ font-size:17px; }
+    .pill-btn{ font-size:11px; padding:6px 9px; }
+  }
   @media (max-width:380px){
     .temp{font-size:58px;}
     .icon-wrap{width:96px; height:96px;}
@@ -174,10 +216,15 @@
 
   <div class="wrap">
     <div class="topbar">
-      <span class="logo-dot"></span>
-      <span class="logo" id="logo-text">오늘 날씨</span>
-      <button class="lang-btn" id="lang-btn" onclick="toggleLang()">🌐 EN</button>
+      <button class="pill-btn nav-btn" id="nav-btn" onclick="onNavClick()">🔋 배터리 교체 방법</button>
+      <div class="brand">
+        <span class="logo-dot"></span>
+        <span class="logo" id="logo-text">오늘 날씨</span>
+      </div>
+      <button class="pill-btn lang-btn" id="lang-btn" onclick="toggleLang()">🌐 EN</button>
     </div>
+
+    <div id="view-weather">
 
     <div id="state">
       <svg class="bounce-sun" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -236,6 +283,19 @@
         <span id="coords">—</span> · <span id="updated-label">업데이트</span> <span id="updated">—</span>
       </footer>
     </div>
+
+    </div><!-- /#view-weather -->
+
+    <!-- 배터리 교체 방법 페이지: 이미지는 아래 script의 BATTERY_STEPS 에서 img 경로만 채우면 들어갑니다 -->
+    <div id="view-battery">
+      <div class="battery-head">
+        <h1 id="battery-title">배터리 교체 방법</h1>
+        <p id="battery-sub">총 5단계로 진행돼요</p>
+      </div>
+      <div id="battery-steps"></div>
+    </div>
+
+    <div class="copyright">©O2</div>
   </div>
 
 <script>
@@ -255,7 +315,10 @@ const STRINGS = {
     feels:'체감', humidity:'습도', wind:'바람', precip:'강수', precipProb:'강수확률',
     sunTrackTitle:'해가 뜨고 지는 시간', weekTitle:'이번 주 예보 (날짜를 눌러보세요)',
     today:'오늘', high:'최고', low:'최저', updated:'업데이트',
-    locationSuffix:'의 날씨'
+    locationSuffix:'의 날씨',
+    navBattery:'🔋 배터리 교체 방법', navBack:'← 날씨',
+    batteryTitle:'배터리 교체 방법', batterySub:'총 5단계로 진행돼요',
+    imagePlaceholder:'이미지를 넣어주세요'
   },
   en: {
     logo:"Today's Weather", langBtn:'🌐 한글',
@@ -272,9 +335,26 @@ const STRINGS = {
     feels:'Feels like', humidity:'Humidity', wind:'Wind', precip:'Precip.', precipProb:'Rain chance',
     sunTrackTitle:'Sunrise & sunset', weekTitle:'This week (tap a day)',
     today:'Today', high:'High', low:'Low', updated:'Updated',
-    locationSuffix:''
+    locationSuffix:'',
+    navBattery:'🔋 Battery guide', navBack:'← Weather',
+    batteryTitle:'How to replace the battery', batterySub:'5 steps in total',
+    imagePlaceholder:'Add your image here'
   }
 };
+
+/* ============================================================
+   배터리 교체 방법 — 단계별 이미지 넣는 곳
+   1) 이미지 파일을 index.html 과 같은 위치(저장소 맨 위)에 업로드
+   2) 아래 img: '' 안에 파일 이름을 적기  (예: img:'step1.png')
+   3) 설명 글이 필요하면 desc 의 ko / en 에 적기 (비워두면 표시 안 됨)
+   ============================================================ */
+const BATTERY_STEPS = [
+  { ko:'상·하단 분리',   en:'Separate top & bottom', img:'', desc:{ ko:'', en:'' } },
+  { ko:'구름 뽑기',      en:'Remove the cloud',      img:'', desc:{ ko:'', en:'' } },
+  { ko:'키캡 뽑기',      en:'Remove the keycap',     img:'', desc:{ ko:'', en:'' } },
+  { ko:'배터리 교체하기', en:'Replace the battery',   img:'', desc:{ ko:'', en:'' } },
+  { ko:'다시 조립하기',   en:'Reassemble',            img:'', desc:{ ko:'', en:'' } }
+];
 
 const WEATHER_TEXT = {
   ko: {
@@ -572,12 +652,68 @@ function requestPrecise(){
   );
 }
 
+/* ---- 배터리 교체 방법 페이지 ---- */
+function renderBattery(){
+  const s = STRINGS[lang];
+  document.getElementById('battery-title').textContent = s.batteryTitle;
+  document.getElementById('battery-sub').textContent = s.batterySub;
+  document.getElementById('battery-steps').innerHTML = BATTERY_STEPS.map((st, i) => {
+    const title = st[lang];
+    const desc = (st.desc && st.desc[lang]) ? `<p class="step-desc">${st.desc[lang]}</p>` : '';
+    // 이미지가 있으면 이미지, 없거나 불러오지 못하면 빈 자리(점선 박스)를 보여줌
+    const slot = `<div class="img-slot"${st.img ? ' style="display:none"' : ''}><div class="slot-icon">🖼️</div><div>${s.imagePlaceholder}</div></div>`;
+    const img = st.img
+      ? `<img class="step-img" src="${st.img}" alt="${title}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      : '';
+    return `<div class="step">
+      <div class="step-head">
+        <div class="step-num">${i + 1}</div>
+        <div><div class="step-label">STEP ${i + 1}</div><div class="step-title">${title}</div></div>
+      </div>
+      ${img}${slot}${desc}
+    </div>`;
+  }).join('');
+}
+
+/* ---- 화면 전환: 날씨 ↔ 배터리 교체 방법 (주소 뒤 #battery 로 바로 접속도 가능) ---- */
+let currentView = 'weather';
+let weatherStarted = false;
+
+function updateChrome(){
+  const s = STRINGS[lang];
+  document.documentElement.lang = lang;
+  document.getElementById('logo-text').textContent = s.logo;
+  document.getElementById('lang-btn').textContent = s.langBtn;
+  document.getElementById('nav-btn').textContent = currentView === 'weather' ? s.navBattery : s.navBack;
+  renderBattery();
+}
+
+function showView(view){
+  currentView = view;
+  document.getElementById('view-weather').style.display = view === 'weather' ? '' : 'none';
+  document.getElementById('view-battery').style.display = view === 'battery' ? 'block' : 'none';
+  updateChrome();
+  window.scrollTo(0, 0);
+  // 날씨 화면을 처음 볼 때만 위치 권한을 요청 (배터리 페이지로 바로 들어오면 요청 안 함)
+  if(view === 'weather' && !weatherStarted){
+    weatherStarted = true;
+    init();
+  }
+}
+
+function onNavClick(){
+  location.hash = currentView === 'weather' ? '#battery' : '#weather';
+}
+
+function routeFromHash(){
+  showView(location.hash === '#battery' ? 'battery' : 'weather');
+}
+
 function toggleLang(){
   lang = lang === 'ko' ? 'en' : 'ko';
+  updateChrome();
   if(!currentData){
     setState(currentStateKey);
-    document.getElementById('logo-text').textContent = STRINGS[lang].logo;
-    document.getElementById('lang-btn').textContent = STRINGS[lang].langBtn;
     return;
   }
   reverseGeocode(currentData.lat, currentData.lon, lang).then(place => {
@@ -611,7 +747,8 @@ function init(){
   );
 }
 
-init();
+window.addEventListener('hashchange', routeFromHash);
+routeFromHash();
 </script>
 </body>
 </html>
